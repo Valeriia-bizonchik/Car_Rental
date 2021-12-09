@@ -2,13 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/Valeriia-bizonchik/CarRental/internal/api/rest/v1"
+	"github.com/Valeriia-bizonchik/CarRental/internal/api"
+	"github.com/Valeriia-bizonchik/CarRental/internal/storage/postgres"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/Valeriia-bizonchik/CarRental/config"
-	"github.com/Valeriia-bizonchik/CarRental/internal/storage/mysql"
 	"github.com/Valeriia-bizonchik/CarRental/logger"
 )
 
@@ -22,18 +22,23 @@ func main() {
 	zLog := logger.InitZapFileConsole(cfg.DebugMode, cfg.LogFile)
 	defer zLog.Sync()
 
-	storage, err := mysql.NewCarRentalStorage(cfg.MySqlDNS)
+	storage, err := postgres.NewCarRentalStorage(cfg.DbDNS)
 	if err != nil {
 		zLog.Sugar().Error(err)
 	}
 
-	api := v1.NewAPI(storage, zLog.Sugar())
-	api.InitRoutes()
+	err = storage.MigrateAllModels()
+	if err != nil {
+		zLog.Sugar().Error(err)
+	}
+
+	apiREST := api.NewAPI(storage, zLog.Sugar())
+	apiREST.InitRoutes()
 
 	errs := make(chan error, 1)
 
 	go func() {
-		errs <- api.Run(cfg.ServiceHost, cfg.ServicePort)
+		errs <- apiREST.Run(cfg.ServiceHost, cfg.ServicePort)
 	}()
 
 	go func() {

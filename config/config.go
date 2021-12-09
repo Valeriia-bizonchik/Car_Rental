@@ -7,21 +7,23 @@ import (
 	"os"
 
 	"github.com/caarlos0/env/v6"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/joho/godotenv"
 )
 
+var JwtKey = []byte("my_secret_key")
+
 type Config struct {
-	MySqlDNS      string
-	MySqlHost     string `env:"MYSQL_HOST,required"`
-	MySqlPort     string `env:"MYSQL_PORT,required"`
-	MySqlUser     string `env:"MYSQL_USER,required"`
-	MySqlDBName   string `env:"MYSQL_DB_NAME,required"`
-	MySqlPassword string `env:"MYSQL_PASSWORD,required"`
-	MySqlSSLMode  string `env:"MYSQL_SSL_MODE,required"`
+
+	// Database settings
+	DbDNS      string
+	DbHost     string `env:"DB_HOST,required"`
+	DbPort     string `env:"DB_PORT,required"`
+	DbUser     string `env:"DB_USER,required"`
+	DbName     string `env:"DB_NAME,required"`
+	DbPassword string `env:"DB_PASSWORD,required"`
+	DbSSLMode  string `env:"DB_SSL_MODE,required"`
 
 	ServiceName string `env:"SERVICE_NAME" envDefault:"car-rental"`
-
 	ServiceHost string `env:"SERVICE_HOST" envDefault:""`
 	ServicePort string `env:"SERVICE_PORT" envDefault:""`
 
@@ -62,15 +64,17 @@ func readLocalEnvFile() {
 
 func printConfig(cfg Config) {
 	fmt.Println("config:")
-	fmt.Println(prettyPrint(cfg))
+	fmt.Println(PrettyPrint(cfg))
 }
 
-func prettyPrint(i interface{}) string {
+func PrettyPrint(i interface{}) string {
 	s, _ := json.MarshalIndent(i, "", "\t")
 	return string(s)
 }
 
 func (c *Config) buildPgURL() {
-	c.MySqlDNS = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
-		c.MySqlUser, c.MySqlPassword, c.MySqlHost, c.MySqlPort, c.MySqlDBName)
+	//c.DNS = fmt.Sprintf("%s:%s@tcp(%s:%s)/%s",
+	//	c.User, c.Password, c.Host, c.Port, c.DBName)
+	c.DbDNS = fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
+		c.DbHost, c.DbUser, c.DbPassword, c.DbName, c.DbPort)
 }

@@ -1,10 +1,6 @@
 package models
 
-import (
-	"github.com/jinzhu/gorm"
-)
-
-var db *gorm.DB
+import "gorm.io/gorm"
 
 type Car struct {
 	gorm.Model

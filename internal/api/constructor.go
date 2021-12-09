@@ -1,8 +1,8 @@
-package v1
+package api
 
 import (
-	"github.com/Valeriia-bizonchik/CarRental/internal/api/rest/middleware"
-	"github.com/Valeriia-bizonchik/CarRental/internal/storage"
+	"github.com/Valeriia-bizonchik/CarRental/internal/api/middleware"
+	"github.com/Valeriia-bizonchik/CarRental/internal/storage/postgres"
 	"github.com/gin-gonic/gin"
 	"go.uber.org/zap"
 )
@@ -10,13 +10,12 @@ import (
 type API struct {
 	r *gin.Engine
 
-	storage storage.CarRental
+	storage *postgres.CarRentalStorage
 	log     *zap.SugaredLogger
 }
 
-func NewAPI(storage storage.CarRental, log *zap.SugaredLogger) *API {
+func NewAPI(storage *postgres.CarRentalStorage, log *zap.SugaredLogger) *API {
 	return &API{storage: storage, log: log}
-
 }
 
 func (a *API) InitRoutes() {
@@ -30,12 +29,16 @@ func (a *API) InitRoutes() {
 		context.JSON(200, gin.H{"status": "ok"})
 	})
 
-	v1 := r.Group(`/api/v1`)
+	api := r.Group(`/api`)
 	{
-		v1.POST(`/echo`, a.Echo)
-		//v1.GET("/cars/get_all", a.GetAllCars)
+		api.POST(`/echo`, a.Echo)
 
-		car := v1.Group("/car")
+		// handle auth
+		api.POST("/login", a.Login)
+		api.POST("/register", a.Register)
+		api.GET("/logout", a.Logout)
+
+		car := api.Group("/car")
 		{
 			//car.POST("/create", a.CreteCar)
 			//car.GET("/get", a.GetCar)
@@ -47,6 +50,11 @@ func (a *API) InitRoutes() {
 				router.HandleFunc("/car/{carId}", controllers.UpdateCar).Methods("PUT")
 				router.HandleFunc("/car/{carId}", controllers.DeleteCar).Methods("DELETE")
 			*/
+		}
+
+		secret := api.Group("/only_auth", middleware.ValidateJWT)
+		{
+			secret.GET("/user_info", a.UserInfo)
 		}
 	}
 
