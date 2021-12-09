@@ -56,6 +56,11 @@ func (a *API) InitRoutes() {
 		{
 			secret.GET("/user_info", a.UserInfo)
 		}
+
+		adminOnly := api.Group("/admin", middleware.ValidateAdmin)
+		{
+			adminOnly.GET("/user_info")
+		}
 	}
 
 	a.r = r

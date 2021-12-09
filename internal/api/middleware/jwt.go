@@ -49,3 +49,18 @@ func ValidateJWT(c *gin.Context) {
 
 	c.Next()
 }
+
+func ValidateAdmin(c *gin.Context) {
+	claims, isExists := c.Get("user_info")
+	if !isExists {
+		c.AbortWithStatus(http.StatusUnauthorized)
+		return
+	}
+
+	clm := claims.(*models.Claims)
+
+	if clm.Role != models.Admin {
+		c.AbortWithStatus(http.StatusForbidden)
+		return
+	}
+}
