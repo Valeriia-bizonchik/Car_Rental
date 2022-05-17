@@ -8,7 +8,7 @@ services:
     environment:
       POSTGRES_USER: driver
       POSTGRES_DB: car_share
-      POSTGRES_PASSWORD: Aria016rnhod4017
+      POSTGRES_PASSWORD: dgadga
     ports:
       - 5432:5432
     expose:
